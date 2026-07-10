@@ -1,5 +1,4 @@
 import json
-import math
 import subprocess
 from pathlib import Path
 from urllib.parse import urlparse
@@ -83,12 +82,12 @@ def get_video_duration_seconds(video_path: Path) -> float:
 
 def choose_frame_count(duration_seconds: float) -> int:
     if duration_seconds <= 35:
-        return 8
+        return 6
 
     if duration_seconds <= 75:
-        return 12
+        return 8
 
-    return 16
+    return 10
 
 
 def extract_representative_frames(
@@ -129,8 +128,10 @@ def extract_representative_frames(
             str(video_path),
             "-frames:v",
             "1",
+            "-vf",
+            "scale=768:-2",
             "-q:v",
-            "2",
+            "5",
             str(frame_path),
         ]
 

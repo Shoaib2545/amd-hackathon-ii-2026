@@ -31,41 +31,20 @@ def load_dotenv_file():
         os.environ[key] = value.strip().strip("'").strip('"')
 
 
-def resolve_data_path(env_name: str, container_path: str, local_relative_path: str) -> Path:
+def resolve_data_path(env_name: str, default_path: str) -> Path:
     configured = os.getenv(env_name)
 
     if configured:
         return Path(configured)
 
-    container_candidate = Path(container_path)
-
-    if container_candidate.exists():
-        return container_candidate
-
-    return PROJECT_ROOT / local_relative_path
-
-
-def resolve_work_dir() -> Path:
-    configured = os.getenv("STYLEFRAME_WORK_DIR")
-
-    if configured:
-        return Path(configured)
-
-    container_candidate = Path("/tmp/styleframe-agent")
-
-    if container_candidate.anchor and container_candidate.parent.exists():
-        return container_candidate
-
-    return PROJECT_ROOT / ".tmp" / "styleframe-agent"
+    return Path(default_path)
 
 
 load_dotenv_file()
 
-INPUT_PATH = resolve_data_path("STYLEFRAME_INPUT_PATH", "/input/tasks.json", "input/tasks.json")
-OUTPUT_PATH = resolve_data_path(
-    "STYLEFRAME_OUTPUT_PATH", "/output/results.json", "output/results.json"
-)
-WORK_DIR = resolve_work_dir()
+INPUT_PATH = resolve_data_path("STYLEFRAME_INPUT_PATH", "/input/tasks.json")
+OUTPUT_PATH = resolve_data_path("STYLEFRAME_OUTPUT_PATH", "/output/results.json")
+WORK_DIR = Path(os.getenv("STYLEFRAME_WORK_DIR", "/tmp/styleframe-agent"))
 
 
 def load_tasks():
@@ -103,6 +82,7 @@ def process_task(task):
 
     return {
         "task_id": task_id,
+        "requested_styles": styles,
         "captions": captions,
     }
 
@@ -120,8 +100,18 @@ def main():
 
         OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
 
+        serializable_results = []
+
+        for item in results:
+            serializable_results.append(
+                {
+                    "task_id": item["task_id"],
+                    "captions": item["captions"],
+                }
+            )
+
         with OUTPUT_PATH.open("w", encoding="utf-8") as file:
-            json.dump(results, file, indent=2, ensure_ascii=False)
+            json.dump(serializable_results, file, indent=2, ensure_ascii=False)
 
         print(f"Successfully wrote results to {OUTPUT_PATH}")
         return 0

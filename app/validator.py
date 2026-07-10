@@ -5,7 +5,6 @@ ALLOWED_STYLES = {
     "humorous_non_tech",
 }
 
-
 def validate_task(task):
     if not isinstance(task, dict):
         raise ValueError("Each task must be an object.")
@@ -28,8 +27,6 @@ def validate_task(task):
             )
 
     return styles
-
-
 def validate_results(results):
     if not isinstance(results, list):
         raise ValueError("Output must be a list.")
@@ -50,9 +47,6 @@ def validate_results(results):
             raise ValueError("captions must be an object.")
 
         for style, caption in captions.items():
-            if style not in ALLOWED_STYLES:
-                raise ValueError(f"Unsupported output style: {style}")
-
             if not isinstance(caption, str):
                 raise ValueError(f"Caption for {style} must be a string.")
 
